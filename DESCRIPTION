@@ -1,0 +1,11 @@
+Package: ggplotheatmap
+Type: Package
+Title: Compose complex heatmaps from multiple ggplots 
+Version: 1.0
+Date: 2015-10-08
+Author: Ira Cooke
+Maintainer: Ira Cooke <iracooke@gmail.com>
+Description: Provides functions for creating heatmap components and then arranging them using gtable
+License: GPL-2
+LazyLoad: yes
+Depends: ggdendro, ggplot2, gtable, reshape2
