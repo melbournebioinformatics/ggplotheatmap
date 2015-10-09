@@ -18,7 +18,7 @@
 #'
 #' show_ggheatmap(hmc$tile,row_dendro = hmc$rowd,col_dendro = hmc$cold)
 
-heatmap_components <- function(x,rlabels=rownames(x),clabels=colnames(x),cold=TRUE,rowd=TRUE){
+heatmap_components <- function(x,rlabels=rownames(x),clabels=colnames(x),cold=TRUE,rowd=TRUE,stripdata=NULL){
   
   if ( is.null(rlabels) ) { rlabels <- 1:nrow(x) }
   if ( is.null(clabels) ) { clabels <- 1:ncol(x) }  

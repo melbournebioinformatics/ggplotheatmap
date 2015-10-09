@@ -58,7 +58,7 @@ show_ggheatmap<-function(tile,row_dendro,col_dendro,lstrip=NULL,bstrip=NULL,
   # Next come the lstrip columns
   #
   for (strip in lstrip) {
-    append.col.for.grob(extract.panel(strip),hm_parts,pad_top,pad_bottom)
+    hm_parts <- append.col.for.grob(extract.panel(strip),hm_parts,pad_top,pad_bottom)
   }
   
   #
