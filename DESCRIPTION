@@ -9,3 +9,4 @@ Description: Provides functions for creating heatmap components and then arrangi
 License: GPL-2
 LazyLoad: yes
 Depends: ggdendro, ggplot2, gtable, reshape2
+Suggests: testthat

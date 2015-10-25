@@ -1,6 +1,7 @@
+rm(list=ls())
 library(ggplotheatmap)
 library(devtools)
-load("../../Projects/squidvenom/Squid_counts/countsViBAQ.RData")
+load("../../../Projects/squidvenom/Squid_counts/countsViBAQ.RData")
 
 
 count_cols = c("Slime","VM","DM","Arms","Brain")
@@ -14,7 +15,10 @@ mcsorted <- mc[order(mc$iBAQ,decreasing=TRUE),]
 
 top100 <- mcsorted[1:100,]
 
-top100_counts <- scale(as.matrix(top100[,count_cols]))
+top100_counts <- as.matrix(top100[,count_cols])
+rownames(top100_counts)<-top100$comp_id
+load("../../../Projects/squidvenom/trin_anno_agg.RData")
+top100_anno <- trin_anno_agg[rownames(top100_counts),]
 
 hmc <- heatmap_components(as.data.frame(top100_counts),top100$comp_id)
 

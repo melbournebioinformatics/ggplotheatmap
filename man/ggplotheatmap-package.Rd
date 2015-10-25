@@ -32,17 +32,21 @@ hmc <- heatmap_components(x = pms)
 
 show_ggheatmap(hmc$tile,row_dendro = hmc$rowd,col_dendro = hmc$cold)
 
+#
 # Slightly more complex example demonstrating how plots can be manipulated
 # between calls to heatmap_components and show_ggheatmap
+#
 
-td <- hmc$data$tile
-ctd <- dcast(td,formula = rlabels ~ clabels,value.var='Intensity')
-ctd[,-1] <- ctd[,-1] / ctd[, "X12.50"]
+data(squid)
+count_cols = c("Slime","VM","DM","Arms","Brain")
 
+#
+# stripcols argument appends extra columns into the tile dataframe
+# these are available to add layers to tile prior to display
+#
+hmc <- heatmap_components(squid[,count_cols],stripdata = data.frame(iBAQ=squid[,1]))
+hmc$tile + geom_point(aes(x="Slime",size=log(iBAQ)))
+hm <- show_ggheatmap(hmc$tile,row_dendro = NULL,col_dendro = hmc$cold)
 
-mtd <- melt(ctd,id.vars = "rlabels",value.name = "FoldChange",variable.name = "clabels")
-hmc$tile <- hmc$tile + geom_point(data=mtd,aes(x=clabels,y=rlabels,size=FoldChange))
-
-show_ggheatmap(hmc$tile,row_dendro = hmc$rowd,col_dendro = hmc$cold)
 
 }

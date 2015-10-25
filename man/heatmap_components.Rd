@@ -5,7 +5,7 @@
 \title{Create grid and dendro parts of a heatmap as separate ggplot objects}
 \usage{
 heatmap_components(x, rlabels = rownames(x), clabels = colnames(x),
-  cold = TRUE, rowd = TRUE)
+  cold = TRUE, rowd = TRUE, stripdata = NULL)
 }
 \arguments{
 \item{x}{matrix of intensity values}

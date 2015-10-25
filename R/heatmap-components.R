@@ -20,6 +20,8 @@
 
 heatmap_components <- function(x,rlabels=rownames(x),clabels=colnames(x),cold=TRUE,rowd=TRUE,stripdata=NULL){
   
+  if ( !is.data.frame(x) ){ x <- as.data.frame(x)}
+  
   if ( is.null(rlabels) ) { rlabels <- 1:nrow(x) }
   if ( is.null(clabels) ) { clabels <- 1:ncol(x) }  
   
@@ -57,8 +59,23 @@ heatmap_components <- function(x,rlabels=rownames(x),clabels=colnames(x),cold=TR
   
   xx <- x[row.ord,col.ord]
   rlabels <- rlabels[row.ord]
-  xx = data.frame(rlabels,xx)
-  xxm <- melt(xx,value.name = 'Intensity',id.vars = c('rlabels'),variable.name = 'clabels')
+  xx <- data.frame(rlabels,xx)
+  xxm_idvars <- c('rlabels')
+  
+  ## Include stripdata in tile data if available
+  if ( !is.null(stripdata) ){
+    if ( !is.data.frame(stripdata) ){
+      stripdata <- as.data.frame(stripdata)
+    }
+
+    rownames(stripdata)<-rownames(x)
+    stripdata <- stripdata[row.ord,,drop=FALSE]
+    xx <- cbind(stripdata,xx)
+    xxm_idvars <- setdiff(colnames(xx),colnames(x))
+  }
+  
+  
+  xxm <- melt(xx,value.name = 'Intensity',id.vars = xxm_idvars,variable.name = 'clabels')
 
   # Ensure that our row and column orderings are respected by ggplot
   xxm$rlabels <- factor(xxm$rlabels,levels=xx$rlabels)
