@@ -12,6 +12,7 @@
 #' @param laxis.width relative width of left axis
 #' @param baxis.height relative height of bottom axis
 #' @param legend.height relative height of legend
+#' @param preserve_scales Allows you to use a custom x scale. If TRUE the x scale will not be replaced. Use expand(c(0.0,0)) on your custom scale.
 #' @return a gtable object that can be displayed with grid.draw
 #' @export
 #' @examples
@@ -20,16 +21,20 @@
 #'hmc <- heatmap_components(x = pms)
 
 #'show_ggheatmap(hmc$tile,row_dendro = hmc$rowd,col_dendro = hmc$cold)
-show_ggheatmap<-function(tile,row_dendro,col_dendro,lstrip=NULL,bstrip=NULL,
+show_ggheatmap<-function(tile,row_dendro=NULL,col_dendro=NULL,lstrip=NULL,bstrip=NULL,
                          cold.height=0.2,rowd.width=0.2,lstrip.width=0.05,bstrip.height=0.05,
                          laxis.width=0.2,baxis.height=0.1,
-                         legend.height=0.1)
+                         legend.height=0.1,preserve_scales=FALSE)
 { 
   
   col_dendro <- col_dendro + theme_dendro()
   row_dendro <- row_dendro + theme_dendro()
   
-  tile <- tile + scale_x_discrete(expand=c(0.0, 0)) + theme(legend.position="bottom")
+  if (!preserve_scales){
+    tile <- tile + scale_x_discrete(expand=c(0.0, 0)) 
+  }
+  
+  tile <- tile + theme(legend.position="bottom")
   
   legends <- list()
   legends <- append(legends,list(extract.legend(tile)))

@@ -18,16 +18,22 @@
 #'
 #' show_ggheatmap(hmc$tile,row_dendro = hmc$rowd,col_dendro = hmc$cold)
 
-heatmap_components <- function(x,rlabels=rownames(x),clabels=colnames(x),cold=TRUE,rowd=TRUE,stripdata=NULL){
+heatmap_components <- function(x,rlabels=rownames(x),clabels=colnames(x),
+                               cold=TRUE,rowd=TRUE,stripdata=NULL,
+                               clust_method = "complete",dist_method="euclidean"){
   
   if ( !is.data.frame(x) ){ x <- as.data.frame(x)}
   
   if ( is.null(rlabels) ) { rlabels <- 1:nrow(x) }
   if ( is.null(clabels) ) { clabels <- 1:ncol(x) }  
   
+  x_mean <- mean(as.matrix(x),na.rm = TRUE)
+  x_no_na <- x
+  x_no_na[is.na(x)] <- x_mean
+
   colnames(x) <- clabels
-  row.hc <- hclust(dist(x))
-  col.hc <- hclust(dist(t(x)))
+  row.hc <- hclust(dist(x_no_na, method = dist_method), method = clust_method)
+  col.hc <- hclust(dist(t(x_no_na),method = dist_method),method = clust_method)
   
   row.dendro <- dendro_data(as.dendrogram(row.hc),type="rectangle")
   col.dendro <- dendro_data(as.dendrogram(col.hc),type="rectangle")
