@@ -2,3 +2,4 @@
 
 export(heatmap_components)
 export(show_ggheatmap)
+export(ggheat)
