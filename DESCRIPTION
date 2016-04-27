@@ -8,5 +8,5 @@ Maintainer: Ira Cooke <iracooke@gmail.com>
 Description: Provides functions for creating heatmap components and then arranging them using gtable
 License: GPL-2
 LazyLoad: yes
-Depends: ggdendro, ggplot2, gtable, reshape2
+Depends: ggdendro, ggplot2, gtable, reshape2, stats
 Suggests: testthat
