@@ -3,24 +3,29 @@
 #   add_genecontext() %>% 
 #   add_samplecontext()
 
-setClass("GGHeat",
-         slots = list(data = "ANY",
-                      main_plot = "ggORNULL"),
-         prototype = list(data = NULL))
+setClass("GGHeat",slots = list(data = "ANY",main_plot = "ggORNULL"),prototype = list(data = NULL))
 
-ggheat <- function(data,
-                   distfun = dist,
-                   hclustfun= hclust,
+
+melt_data <- function(data){
+  x <- as.data.frame(data)
+  x <- cbind(rownames(x),x)
+  dd <- melt(id.vars=1,x)
+  names(dd) <-c("x","y","value")
+  dd$value <- as.numeric(dd$value)
+  dd
+}
+
+
+ggheat <- function(data,distfun = dist,hclustfun= hclust,
                    rlabels=rownames(data),
                    clabels=colnames(data),
                    cold=TRUE,rowd=TRUE,...){
 
   
-  cm_data <- cluster_and_melt(data,distfun,hclustfun)
-  
-  
-  hmp <- ggplot(cm_data)
-  browser()
+  melted_data <- melt_data(data)
+
+  hmp <- ggplot(melted_data,aes(x=x,y=y))
+  # browser()
   # hmp <- hmp + geom_tile(aes(fill=Intensity)) + scale_fill_gradient2(na.value="white",low="red",mid="grey90",high="blue") 
   
   
