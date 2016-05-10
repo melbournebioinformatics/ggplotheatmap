@@ -15,7 +15,9 @@ ggheat <- function(data,id.vars=c(),
   
   melted_data <- wide_to_tall(data,id.vars)
 
-  hmp <- ggplot(melted_data,aes(x=x,y=y))
+  # By default there should be no grouping but in order to enforce this we must explicitly set the group
+  # because the ggplot default is to group by all discrete variables present in the data
+  hmp <- ggplot(melted_data,aes(x=x,y=y,group=1))
 
   new("GGHeat",data=data,main_plot=hmp)
 }
