@@ -1,5 +1,4 @@
 setOldClass("ggplot")
-# setClassUnion("ggplotORNULL", c("ggplot", "NULL"))
+#setClassUnion("ggplotORNULL", c("ggplot", "NULL"))
 setOldClass(c("gg", "ggplot"))
-# setClassUnion("ggORNULL", c("gg", "NULL"))
-
+# setClassUnion("GGHeatDendroOrNULL", c("GGHeat", "NULL"))

@@ -1,30 +1,30 @@
 
-
-cluster_group <- function(data,cluster_aes){
-  original_columns <- names(data)
-  cluster_columns <- c('x','y',cluster_aes)
-  clusterable_data <- data[,cluster_columns]
-  non_clusterable_data <- data[,setdiff(original_columns,cluster_columns)]
-  
-  x <-  clusterable_data %>% spread_("y",cluster_aes) %>% arrange(x) %>% select(-x)
-  row.hc <- hclust(dist(x))
-  col.hc <- hclust(dist(t(x)))
-  
-  col.ord <- col.hc$order
-  row.ord <- row.hc$order
-  xx <- x[row.ord,col.ord]
-  xt <- wide_to_tall(xx) %>% mutate(x=as.numeric(x)) %>% mutate(y=as.integer(y))
-  
-  
-  
-  # nd <- xt %>% cbind(group=rep(1,nrow(.))) %>% cbind(PANEL=rep(1,nrow(.))) %>% rename_(cluster_aes="value")
-  # nd[,c('fill','x','y','PANEL','group')]
-  
-  nd <- cbind(non_clusterable_data,xt)
-  names(nd)[names(nd) == "value"] = cluster_aes
-  
-  nd[,original_columns]  
-}
+# 
+# cluster_group <- function(data,cluster_aes){
+#   original_columns <- names(data)
+#   cluster_columns <- c('x','y',cluster_aes)
+#   clusterable_data <- data[,cluster_columns]
+#   non_clusterable_data <- data[,setdiff(original_columns,cluster_columns)]
+#   
+#   x <-  clusterable_data %>% spread_("y",cluster_aes) %>% arrange(x) %>% select(-x)
+#   row.hc <- hclust(dist(x))
+#   col.hc <- hclust(dist(t(x)))
+#   
+#   col.ord <- col.hc$order
+#   row.ord <- row.hc$order
+#   xx <- x[row.ord,col.ord]
+#   xt <- wide_to_tall(xx) %>% mutate(x=as.numeric(x)) %>% mutate(y=as.integer(y))
+#   
+#   
+#   
+#   # nd <- xt %>% cbind(group=rep(1,nrow(.))) %>% cbind(PANEL=rep(1,nrow(.))) %>% rename_(cluster_aes="value")
+#   # nd[,c('fill','x','y','PANEL','group')]
+#   
+#   nd <- cbind(non_clusterable_data,xt)
+#   names(nd)[names(nd) == "value"] = cluster_aes
+#   
+#   nd[,original_columns]  
+# }
 
 # StatHeat <- ggproto("StatHeat", Stat, required_aes = c("x","y"),
 #                     
@@ -62,8 +62,10 @@ StatHeat <- ggproto("StatHeat", Stat, required_aes = c("x","y"),
                       non_clusterable_data <- data[,setdiff(original_columns,cluster_columns)]
                       
                       x <-  clusterable_data %>% spread_("y",cluster_aes) %>% arrange(x) %>% select(-x)
-                      row.hc <- hclust(dist(x))
-                      col.hc <- hclust(dist(t(x)))
+                      
+                      xnum <- apply(x,2,function(col) as.numeric(col))
+                      row.hc <- hclust(dist(xnum))
+                      col.hc <- hclust(dist(t(xnum)))
                       
                       col.ord <- col.hc$order
                       row.ord <- row.hc$order
