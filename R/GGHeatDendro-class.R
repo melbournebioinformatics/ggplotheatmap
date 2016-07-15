@@ -8,9 +8,5 @@ dendro <- function(type='row'){
 }
 
 is_dendro <- function(object){
-  if ( length(class(object)) > 1){
-    return(FALSE)
-  } else {
-    return(class("GGHeatDendro")==class(object))
-  }
+  is ( object, "GGHeatDendro")
 }
