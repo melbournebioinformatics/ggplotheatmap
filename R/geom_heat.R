@@ -1,0 +1,53 @@
+#' Draw heatmaps.
+#'
+#' \code{geom_heat} creates a heatmap by combining \code{geom_tile} to produce the map itself and \code{geom_segment} to display a dendrogram based on the current clustering.
+#'
+#' @export
+geom_heat <- function(mapping = NULL, data = NULL,
+                      stat = "heat", position = "identity",
+                      ...,
+                      na.rm = FALSE,
+                      show.legend = NA,
+                      inherit.aes = TRUE) {
+  
+  # TODO: Check and provide an error if appropriate aes not set
+  #
+  cluster_aes = names(which(as.character(mapping)=="value"))[1]  
+  
+  layer(
+    data = data,
+    mapping = mapping,
+    stat = stat,
+    geom = GeomHeat,
+    position = position,
+    show.legend = show.legend,
+    inherit.aes = inherit.aes,
+    params = list(
+      na.rm = na.rm,
+      cluster_aes = cluster_aes,
+      ...
+    )
+  )
+}
+
+#' @export
+GeomHeat <- ggproto("GeomHeat", GeomRect,
+                    extra_params = c("na.rm", "width", "height"),
+                    
+                    setup_data = function(data, params) {
+                      data$width <- data$width %||% params$width %||% resolution(data$x, FALSE)
+                      data$height <- data$height %||% params$height %||% resolution(data$y, FALSE)
+                      
+                      transform(data,
+                                xmin = x - width / 2,  xmax = x + width / 2,  width = NULL,
+                                ymin = y - height / 2, ymax = y + height / 2, height = NULL
+                      )
+                    },
+                    
+                    default_aes = aes(fill = "grey20", colour = NA, size = 0.1, linetype = 1,
+                                      alpha = NA),
+                    
+                    required_aes = c("x", "y"),
+                    
+                    draw_key = draw_key_polygon
+)
