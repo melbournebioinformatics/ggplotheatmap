@@ -6,10 +6,10 @@ stat_heat <- function(mapping = NULL, data = NULL, geom = "tile",
                       position = "identity", na.rm = FALSE, show.legend = NA, 
                       inherit.aes = TRUE, ...) {
   
-  # TODO: Check and provide an error if appropriate aes not set
-  #
-  cluster_aes = names(which(as.character(mapping)=="value"))[1]
-  
+  mapping <- add_clusterby_aes(mapping)
+  cluster_aes <- names(which(as.character(mapping)=="value"))[1]
+  # if ( is.na(cluster_aes)) { cluster_aes=NULL}
+    
   layer(
     stat = StatHeat, data = data, mapping = mapping, geom = geom, 
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
@@ -23,7 +23,6 @@ StatHeat <- ggproto("StatHeat", Stat, required_aes = c("x","y"),
                     compute_group = function(self,data, scales, cluster_aes) {
                       if(nrow(data) < 2){ return(data) }
 
-                                            # browser()
                       original_columns <- names(data)
                       
                       # We know the x and y columns must be present as these are added when initialising the GGHeat object

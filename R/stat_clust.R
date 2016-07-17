@@ -1,4 +1,6 @@
-#' cluster_by must be x or y indicates which axis to cluster by
+
+
+#' cluster_axis must be x or y indicates which axis to cluster by
 #' Add a heatmap layer to a plot
 #'
 #' @export
@@ -7,20 +9,19 @@ stat_clust <- function(mapping = NULL, data = NULL,
                        na.rm = FALSE, 
                        show.legend = NA,
                        inherit.aes = TRUE,
-                       cluster_by = "x",
+                       cluster_axis = "x",
                        relsize = 0.2) {
 
-  # TODO: Check and provide an error if appropriate aes not set
-  # This only works because we are assured that data will contain a "value" column
-  cluster_aes = names(which(as.character(mapping)=="value"))[1]
-
+  mapping <- add_clusterby_aes(mapping)
+  cluster_aes <- names(which(as.character(mapping)=="value"))[1]
+  
   layer(
     stat = StatClust, data = data, mapping = mapping, geom = geom, 
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
     params = list(
       na.rm = na.rm,
       cluster_aes = cluster_aes,
-      cluster_by = cluster_by,
+      cluster_axis = cluster_axis,
       relsize = relsize,
       ...
     )
@@ -51,10 +52,10 @@ rescale_dendro_x <- function(dd,xs,xscale){
 #' @export
 StatClust <- ggproto("StatClust", Stat, required_aes = c("x","y"),
                     
-                    compute_group = function(self,data, scales, cluster_aes, cluster_by = "x", relsize = 0.2) {
+                    compute_group = function(self,data, scales, cluster_aes, cluster_axis = "x", relsize = 0.2) {
                       if(nrow(data) < 2){ return(data) }
                       
-                      browser()
+                      # browser()
                       original_columns <- names(data)
                       
                       # We know the x and y columns must be present as these are added when initialising the GGHeat object
@@ -80,13 +81,13 @@ StatClust <- ggproto("StatClust", Stat, required_aes = c("x","y"),
                       col.dendro <- dendro_data(as.dendrogram(col.hc),type="rectangle")
                       
                       
-                      if ( cluster_by == "x" ){
+                      if ( cluster_axis == "x" ){
                         rowd <- segment(row.dendro)
                         
                         # When we cluster by x we use y to set the relsize
                         yvals <- as.numeric(colnames(x))
                         return(rescale_dendro_y(rowd,max(yvals)+0.5,max(yvals)*relsize))
-                      } else if ( cluster_by == "y"){
+                      } else if ( cluster_axis == "y"){
                         # browser()
                         cold <- segment(col.dendro)
                         cold <- data.frame(x=cold$y,y=cold$x,yend=cold$xend,xend=cold$yend)
@@ -94,7 +95,7 @@ StatClust <- ggproto("StatClust", Stat, required_aes = c("x","y"),
                         xvals <- as.numeric(rownames(x))
                         return(rescale_dendro_x(cold,max(xvals)+0.5,max(xvals)*relsize))                        
                       } else {
-                        stop("Invalid value for cluster_by. Must be set to x or y ",cluster_by)
+                        stop("Invalid value for cluster_axis. Must be set to x or y ",cluster_axis)
                       }
 
                     }

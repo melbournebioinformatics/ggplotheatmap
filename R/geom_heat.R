@@ -10,9 +10,8 @@ geom_heat <- function(mapping = NULL, data = NULL,
                       show.legend = NA,
                       inherit.aes = TRUE) {
   
-  # TODO: Check and provide an error if appropriate aes not set
-  #
-  cluster_aes = names(which(as.character(mapping)=="value"))[1]  
+  mapping <- add_clusterby_aes(mapping)
+  cluster_aes <- names(which(as.character(mapping)=="value"))[1]
   
   layer(
     data = data,
