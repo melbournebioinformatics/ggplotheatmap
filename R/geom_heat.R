@@ -10,7 +10,7 @@ geom_heat <- function(mapping = NULL, data = NULL,
                       show.legend = NA,
                       inherit.aes = TRUE) {
   
-  mapping <- add_clusterby_aes(mapping)
+  # mapping <- add_clusterby_aes(mapping)
   # cluster_aes <- names(which(as.character(mapping)=="value"))[1]
   
   layer(
@@ -34,6 +34,8 @@ GeomHeat <- ggproto("GeomHeat", GeomRect,
                     extra_params = c("na.rm", "width", "height"),
                     
                     setup_data = function(data, params) {
+                      
+                      # browser()
                       data$width <- data$width %||% params$width %||% resolution(data$x, FALSE)
                       data$height <- data$height %||% params$height %||% resolution(data$y, FALSE)
 

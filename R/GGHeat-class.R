@@ -17,7 +17,7 @@ ggheat <- function(data,id.vars=c(),
   # browser()
   # By default there should be no grouping but in order to enforce this we must explicitly set the group
   # because the ggplot default is to group by all discrete variables present in the data
-  hmp <- ggplot(melted_data,aes(rowid=rowid,colid=colid,cluster_by=value,group=1)) 
+  hmp <- ggplot(melted_data,aes(rowid=rowid,colid=colid,cluster_by=value,group=1))
 
   new("GGHeat",data=data,main_plot=hmp)
 }

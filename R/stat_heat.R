@@ -28,6 +28,8 @@ StatHeat <- ggproto("StatHeat", Stat,
                       #
                       cluster_columns <- c('rowid','colid',cluster_aes)
                       clusterable_data <- data[,cluster_columns]
+                      
+                      # This is kept because it might contain data for other aesthetics
                       non_clusterable_data <- data[,setdiff(original_columns,cluster_columns)]
                       
                       # Convert from tall to wide and remove the x column so all we have
@@ -56,12 +58,18 @@ StatHeat <- ggproto("StatHeat", Stat,
                       # browser()
                       # Convert back to tall. This makes a new x and new y based on the new ordering in the matrix
                       xx <- data.frame(xx,rowx=1:nrow(xx),rowid=xrowids$rowid[row.ord])
-                      colnames(xx) <- c(1:ncol(x),"rowx","rowid")
+                      # colnames(xx) <- c(1:ncol(x),"rowx","rowid")
                       
                       
-                      xt <- xx %>% mutate(rowid=as.integer(rowid)) %>% gather_("colid","value",setdiff(colnames(xx),c("rowx","coly","rowid","colid")))
-                      xt$coly <- as.numeric(xt$colid)
+                      xt <- xx %>% gather_("colid","value",setdiff(colnames(xx),c("rowx","coly","rowid","colid")))
+                      
+                      # browser()
+                      
+                      xt$coly <- as.integer(factor(xt$colid))
+                      xt$rowx <- as.integer(factor(xt$rowid))
 
+                      # This is essential in order to rejoin with the original data
+                      xt <- xt %>% arrange(colid,rowid)
                       
                       
                       # nd <- xt %>% cbind(group=rep(1,nrow(.))) %>% cbind(PANEL=rep(1,nrow(.))) %>% rename_(cluster_aes="value")
