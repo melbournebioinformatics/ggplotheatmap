@@ -83,23 +83,23 @@ StatClust <- ggproto("StatClust", Stat,
                       row.dendro <- dendro_data(as.dendrogram(row.hc),type="rectangle")
                       col.dendro <- dendro_data(as.dendrogram(col.hc),type="rectangle")
                       
-                      
+                      rsd <- NULL
                       if ( cluster_axis == "x" ){
                         rowd <- segment(row.dendro)
                         
                         # When we cluster by x we use y to set the relsize
-                        return(rescale_dendro_y(rowd,ncol(x)+0.5,ncol(x)*relsize))
+                        rsd <- rescale_dendro_y(rowd,ncol(x)+0.5,ncol(x)*relsize)
                       } else if ( cluster_axis == "y"){
                         # browser()
                         cold <- segment(col.dendro)
                         cold <- data.frame(x=cold$y,y=cold$x,yend=cold$xend,xend=cold$yend)
                         
                         xvals <- as.numeric(rownames(x))
-                        return(rescale_dendro_x(cold,max(xvals)+0.5,max(xvals)*relsize))                        
+                        rsd <- rescale_dendro_x(cold,max(xvals)+0.5,max(xvals)*relsize)                        
                       } else {
                         stop("Invalid value for cluster_axis. Must be set to x or y ",cluster_axis)
                       }
-
+                      rsd
                     }
                   )
 
