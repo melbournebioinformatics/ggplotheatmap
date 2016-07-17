@@ -5,37 +5,35 @@
 stat_heat <- function(mapping = NULL, data = NULL, geom = "tile",
                       position = "identity", na.rm = FALSE, show.legend = NA, 
                       inherit.aes = TRUE, ...) {
-  
-  mapping <- add_clusterby_aes(mapping)
-  cluster_aes <- names(which(as.character(mapping)=="value"))[1]
-  # if ( is.na(cluster_aes)) { cluster_aes=NULL}
-    
   layer(
     stat = StatHeat, data = data, mapping = mapping, geom = geom, 
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
-    params = list(na.rm = na.rm, cluster_aes = cluster_aes, ...)
+    params = list(na.rm = na.rm, ...)
   )
 }
 
 #' @export
-StatHeat <- ggproto("StatHeat", Stat, required_aes = c("x","y"),
-                    
-                    compute_group = function(self,data, scales, cluster_aes) {
+StatHeat <- ggproto("StatHeat", Stat, 
+                    required_aes = c("cluster_by"),
+                    default_aes = aes(x=..rowx..,y=..coly..),
+                    compute_group = function(self,data, scales, cluster_aes = "cluster_by") {
                       if(nrow(data) < 2){ return(data) }
-
+  
                       original_columns <- names(data)
                       
+                      # browser()
                       # We know the x and y columns must be present as these are added when initialising the GGHeat object
                       # x is always the row number
                       # y is always the column number
                       #
-                      cluster_columns <- c('x','y',cluster_aes)
+                      cluster_columns <- c('rowid','colid',cluster_aes)
                       clusterable_data <- data[,cluster_columns]
                       non_clusterable_data <- data[,setdiff(original_columns,cluster_columns)]
                       
                       # Convert from tall to wide and remove the x column so all we have
                       # are the matrix of clusterable values
-                      x <-  clusterable_data %>% spread_("y",cluster_aes) %>% arrange(x) %>% select(-x)
+                      xrowids <- clusterable_data %>% spread_("colid",cluster_aes) %>% arrange(rowid) 
+                      x <-  clusterable_data %>% spread_("colid",cluster_aes) %>% arrange(rowid) %>% select(-rowid)
                       
                       # Ensure that the matrix is entirely numeric
                       xnum <- apply(x,2,function(col) as.numeric(col))
@@ -47,14 +45,23 @@ StatHeat <- ggproto("StatHeat", Stat, required_aes = c("x","y"),
                       col.ord <- col.hc$order
                       row.ord <- row.hc$order
                       
-                      # Make a new matrix with the clustering order
+                      #
+                      # Make a new matrix with the clustering order. 
+                      # This matrix allows us to calculate the derived variables rowx and coly which are the numeric positions 
+                      # corresponding to the properly clustered matrix
+                      # We need to retain the original row and columns ids though for labelling and for other plots
+                      #
                       xx <- x[row.ord,col.ord]
+
+                      # browser()
+                      # Convert back to tall. This makes a new x and new y based on the new ordering in the matrix
+                      xx <- data.frame(xx,rowx=1:nrow(xx),rowid=xrowids$rowid[row.ord])
+                      colnames(xx) <- c(1:ncol(x),"rowx","rowid")
                       
-                      # Convert back to tall. This make a new x and new y based on the new ordering in the matrix
-                      xx <- data.frame(xx,xord=row.ord,yord=col.ord)
-                      colnames(xx) <- c(1:ncol(x),"xord","yord")
-                      xt <- wide_to_tall(xx,id.vars=c("xord","yord")) %>% mutate(x=as.numeric(x)) %>% mutate(y=as.integer(y))
                       
+                      xt <- xx %>% mutate(rowid=as.integer(rowid)) %>% gather_("colid","value",setdiff(colnames(xx),c("rowx","coly","rowid","colid")))
+                      xt$coly <- as.numeric(xt$colid)
+
                       
                       
                       # nd <- xt %>% cbind(group=rep(1,nrow(.))) %>% cbind(PANEL=rep(1,nrow(.))) %>% rename_(cluster_aes="value")
@@ -62,7 +69,7 @@ StatHeat <- ggproto("StatHeat", Stat, required_aes = c("x","y"),
                       
                       nd <- cbind(non_clusterable_data,xt)
                       names(nd)[names(nd) == "value"] = cluster_aes
-                      nd <- nd[,c(original_columns,"xord","yord")]
+                      nd <- nd[,c(original_columns,"rowx","coly")]
                       data.frame(nd)
                       
                       # browser()

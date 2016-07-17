@@ -7,10 +7,7 @@
 
 add_clusterby_aes <- function(mapping){
   if (!is.null(mapping)){
-    cluster_aes <- names(which(as.character(mapping)=="value"))[1]    
-    if (is.na(cluster_aes)) {
-      mapping <- aes.update(mapping,cluster_by=value)
-    }
+    mapping <- aes.update(mapping,cluster_by=value)
   } else {
     mapping <-  aes(cluster_by=value)
   }

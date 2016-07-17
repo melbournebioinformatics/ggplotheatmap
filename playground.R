@@ -18,7 +18,7 @@ gh + stat_heat(aes(fill=value),geom="heat") + theme_ggheat()  + facet_wrap(~grp)
 gh + stat_heat(aes(fill=value),geom="heat") + facet_wrap(~grp) +  stat_clust(aes(color=value)) +  stat_clust(aes(color=value),cluster_by = "y", relsize=0.05) 
 
 
-gh + stat_heat(aes(fill=value),geom="heat") + facet_wrap(~grp) +  stat_clust() 
+gh + stat_heat(aes(fill=value),geom="heat") + facet_wrap(~grp) +  geom_point(aes(color=iBAQ),stat="heat")
 
 #+ coord_flip()
 

@@ -12,15 +12,15 @@ stat_clust <- function(mapping = NULL, data = NULL,
                        cluster_axis = "x",
                        relsize = 0.2) {
 
-  mapping <- add_clusterby_aes(mapping)
-  cluster_aes <- names(which(as.character(mapping)=="value"))[1]
+  # mapping <- add_clusterby_aes(mapping)
+  # cluster_aes <- names(which(as.character(mapping)=="value"))[1]
   
   layer(
     stat = StatClust, data = data, mapping = mapping, geom = geom, 
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
     params = list(
       na.rm = na.rm,
-      cluster_aes = cluster_aes,
+      # cluster_aes = cluster_aes,
       cluster_axis = cluster_axis,
       relsize = relsize,
       ...
@@ -50,9 +50,10 @@ rescale_dendro_x <- function(dd,xs,xscale){
 
 
 #' @export
-StatClust <- ggproto("StatClust", Stat, required_aes = c("x","y"),
-                    
-                    compute_group = function(self,data, scales, cluster_aes, cluster_axis = "x", relsize = 0.2) {
+StatClust <- ggproto("StatClust", Stat, 
+                     required_aes = c("cluster_by"),
+                     # default_aes = aes(x=..rowx..,y=..coly..),
+                    compute_group = function(self,data, scales, cluster_aes = "cluster_by", cluster_axis = "x", relsize = 0.2) {
                       if(nrow(data) < 2){ return(data) }
                       
                       # browser()
@@ -62,13 +63,15 @@ StatClust <- ggproto("StatClust", Stat, required_aes = c("x","y"),
                       # x is always the row number
                       # y is always the column number
                       #
-                      cluster_columns <- c('x','y',cluster_aes)
+                      cluster_columns <- c('rowid','colid',cluster_aes)
                       clusterable_data <- data[,cluster_columns]
                       non_clusterable_data <- data[,setdiff(original_columns,cluster_columns)]
                       
                       # Convert from tall to wide and remove the x column so all we have
                       # are the matrix of clusterable values
-                      x <-  clusterable_data %>% spread_("y",cluster_aes) %>% arrange(x) %>% select(-x)
+                      xrowids <- clusterable_data %>% spread_("colid",cluster_aes) %>% arrange(rowid) 
+                      x <-  clusterable_data %>% spread_("colid",cluster_aes) %>% arrange(rowid) %>% select(-rowid)
+
                       
                       # Ensure that the matrix is entirely numeric
                       xnum <- apply(x,2,function(col) as.numeric(col))
@@ -85,8 +88,7 @@ StatClust <- ggproto("StatClust", Stat, required_aes = c("x","y"),
                         rowd <- segment(row.dendro)
                         
                         # When we cluster by x we use y to set the relsize
-                        yvals <- as.numeric(colnames(x))
-                        return(rescale_dendro_y(rowd,max(yvals)+0.5,max(yvals)*relsize))
+                        return(rescale_dendro_y(rowd,ncol(x)+0.5,ncol(x)*relsize))
                       } else if ( cluster_axis == "y"){
                         # browser()
                         cold <- segment(col.dendro)

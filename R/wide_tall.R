@@ -5,16 +5,16 @@
 #
 wide_to_tall <- function(data,id.vars=c()){
   rownames(data) <- NULL
-  data %>% add_rownames(var = "x") %>% 
-    mutate(x=as.integer(x)) %>% 
-    gather_("y","value",setdiff(colnames(data),id.vars))
+  data %>% add_rownames(var = "rowid") %>% 
+    mutate(rowid=as.integer(rowid)) %>% 
+    gather_("colid","value",setdiff(colnames(data),id.vars))
 }
 
 # Expects input from wide_to_tall
 #
-tall_to_wide <- function(data,value.var="value"){
-  data %>% spread_("y",value.var) %>% arrange(x) %>% select(-x)
-}
+# tall_to_wide <- function(data,value.var="value"){
+#   data %>% spread_("y",value.var) %>% arrange(x) %>% select(-x)
+# }
 
 
 
