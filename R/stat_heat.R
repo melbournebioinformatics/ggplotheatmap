@@ -15,7 +15,7 @@ stat_heat <- function(mapping = NULL, data = NULL, geom = "tile",
 #' @export
 StatHeat <- ggproto("StatHeat", Stat, 
                     required_aes = c("cluster_by"),
-                    default_aes = aes(x=..rowx..,y=..coly..),
+                    # default_aes = aes(x=..rowx..,y=..coly..),
                     compute_group = function(self,data, scales, cluster_aes = "cluster_by") {
                       if(nrow(data) < 2){ return(data) }
   
@@ -26,7 +26,7 @@ StatHeat <- ggproto("StatHeat", Stat,
                       # x is always the row number
                       # y is always the column number
                       #
-                      cluster_columns <- c('rowid','colid',cluster_aes)
+                      cluster_columns <- c('x','y',cluster_aes)
                       clusterable_data <- data[,cluster_columns]
                       
                       # This is kept because it might contain data for other aesthetics
@@ -34,8 +34,8 @@ StatHeat <- ggproto("StatHeat", Stat,
                       
                       # Convert from tall to wide and remove the x column so all we have
                       # are the matrix of clusterable values
-                      xrowids <- clusterable_data %>% spread_("colid",cluster_aes) %>% arrange(rowid) 
-                      x <-  clusterable_data %>% spread_("colid",cluster_aes) %>% arrange(rowid) %>% select(-rowid)
+                      xrowids <- clusterable_data %>% spread_("y",cluster_aes) %>% arrange(x) 
+                      x <-  clusterable_data %>% spread_("y",cluster_aes) %>% arrange(x) %>% select(-x)
                       
                       # Ensure that the matrix is entirely numeric
                       xnum <- apply(x,2,function(col) as.numeric(col))
@@ -54,22 +54,23 @@ StatHeat <- ggproto("StatHeat", Stat,
                       # We need to retain the original row and columns ids though for labelling and for other plots
                       #
                       xx <- x[row.ord,col.ord]
-
+                      
+                      
                       # browser()
                       # Convert back to tall. This makes a new x and new y based on the new ordering in the matrix
-                      xx <- data.frame(xx,rowx=1:nrow(xx),rowid=xrowids$rowid[row.ord])
-                      # colnames(xx) <- c(1:ncol(x),"rowx","rowid")
+                      xx <- data.frame(xx,rowx=1:nrow(xx),x=xrowids$x[row.ord])
+                      colnames(xx) <- c(col.ord,"rowx","x")
                       
                       
-                      xt <- xx %>% gather_("colid","value",setdiff(colnames(xx),c("rowx","coly","rowid","colid")))
-                      
+                      xt <- xx %>% gather_("y","value",setdiff(colnames(xx),c("rowx","coly","x","y")))
+                      xt$y <- as.integer(xt$y)
                       # browser()
                       
-                      xt$coly <- as.integer(factor(xt$colid))
-                      xt$rowx <- as.integer(factor(xt$rowid))
+                      xt$coly <- xt$y
+                      xt$rowx <- xt$x 
 
                       # This is essential in order to rejoin with the original data
-                      xt <- xt %>% arrange(colid,rowid)
+                      xt <- xt %>% arrange(y,x)
                       
                       
                       # nd <- xt %>% cbind(group=rep(1,nrow(.))) %>% cbind(PANEL=rep(1,nrow(.))) %>% rename_(cluster_aes="value")

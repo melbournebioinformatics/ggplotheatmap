@@ -63,14 +63,14 @@ StatClust <- ggproto("StatClust", Stat,
                       # x is always the row number
                       # y is always the column number
                       #
-                      cluster_columns <- c('rowid','colid',cluster_aes)
+                      cluster_columns <- c('x','y',cluster_aes)
                       clusterable_data <- data[,cluster_columns]
                       non_clusterable_data <- data[,setdiff(original_columns,cluster_columns)]
                       
                       # Convert from tall to wide and remove the x column so all we have
                       # are the matrix of clusterable values
-                      xrowids <- clusterable_data %>% spread_("colid",cluster_aes) %>% arrange(rowid) 
-                      x <-  clusterable_data %>% spread_("colid",cluster_aes) %>% arrange(rowid) %>% select(-rowid)
+                      xrowids <- clusterable_data %>% spread_("y",cluster_aes) %>% arrange(x) 
+                      x <-  clusterable_data %>% spread_("y",cluster_aes) %>% arrange(x) %>% select(-x)
 
                       
                       # Ensure that the matrix is entirely numeric
