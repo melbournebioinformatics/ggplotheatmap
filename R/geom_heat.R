@@ -35,13 +35,19 @@ GeomHeat <- ggproto("GeomHeat", GeomRect,
                     
                     setup_data = function(data, params) {
                       
-                      # browser()
-                      data$width <- data$width %||% params$width %||% resolution(data$x, FALSE)
-                      data$height <- data$height %||% params$height %||% resolution(data$y, FALSE)
+                      
+                    # browser()
+                      data$nx <- as.integer(data$x)
+                      data$ny <- as.integer(data$y)
+                      data$width <- data$width %||% params$width %||% resolution(data$nx, FALSE)
+                      data$height <- data$height %||% params$height %||% resolution(data$ny, FALSE)
 
+                      
+                      # data$width <- data$width*0.5
+                      
                       transform(data,
-                                xmin = x - width / 2,  xmax = x + width / 2,  width = NULL,
-                                ymin = y - height / 2, ymax = y + height / 2, height = NULL
+                                xmin = nx - width / 2,  xmax = nx + width / 2,  width = NULL,
+                                ymin = ny - height / 2, ymax = ny + height / 2, height = NULL
                       )
                     },
                     

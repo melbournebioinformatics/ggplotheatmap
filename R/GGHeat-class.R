@@ -12,19 +12,23 @@ ggheat <- function(data,id.vars=c(),
                    clabels=colnames(data),
                    cold=TRUE,rowd=TRUE,...){
 
-  
+  rownames(data) <- rlabels
+  colnames(data) <- clabels
   melted_data <- wide_to_tall(data,id.vars)
-  # browser()
+
+    # browser()
   # By default there should be no grouping but in order to enforce this we must explicitly set the group
   # because the ggplot default is to group by all discrete variables present in the data
-  hmp <- ggplot(melted_data,aes(x=rowid,y=colid,cluster_by=value,group=1))
-
+  # hmp <- ggplot(melted_data,aes(x=rowid,y=colid,rowid=rowid,colid=colid,cluster_by=value,group=1))
+  hmp <- ggplot(melted_data,aes(rowid=rowid,colid=colid,cluster_by=value,group=1))
+  
   new("GGHeat",data=data,main_plot=hmp)
 }
 
 
 setMethod("+", c(e1 = "GGHeat"), function(e1, e2){
   e1@main_plot <- e1@main_plot + e2
+  # browser()
   e1
 })
 

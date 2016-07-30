@@ -4,9 +4,11 @@
 # Converts from wide to tall and encodes the original row and column ordering in x and y, and the corresponding value in value
 #
 wide_to_tall <- function(data,id.vars=c()){
-  rownames(data) <- NULL
-  data %>% add_rownames(var = "rowid") %>% 
-    mutate(rowid=as.integer(rowid)) %>% 
+  # ox <- rownames(data)
+  # oc <- colnames(data)
+  # rownames(data) <- NULL
+  data %>% add_rownames(var = "rowid") %>%
+    # mutate(rowid=as.integer(rowid)) %>% 
     gather_("colid","value",setdiff(colnames(data),id.vars))
 }
 
