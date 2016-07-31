@@ -1,4 +1,18 @@
 
+# Return unique columns
+# This is used for figuring out which columns are constant within a group
+#
+# @keyword internal
+uniquecols <- function(df) {
+  df <- df[1, sapply(df, function(x) length(unique(x)) == 1), drop = FALSE]
+  rownames(df) <- 1:nrow(df)
+  df
+}
+
+empty <- function(df) {
+  is.null(df) || nrow(df) == 0 || ncol(df) == 0
+}
+
 snakeize <- function(x) {
   x <- gsub("([A-Za-z])([A-Z])([a-z])", "\\1_\\2\\3", x)
   x <- gsub(".", "_", x, fixed = TRUE)
@@ -88,24 +102,104 @@ stat_heat <- function(mapping = NULL, data = NULL, geom = "tile",
 StatHeat <- ggproto("StatHeat", Stat,
                     required_aes = c("cluster_by"),
                     default_aes = aes(x= ..rowx.. ,y= ..coly.. ),
-                    # default_aes = aes(x=~rowid,y=~colid),
+                    # 
+                    setup_params = function(data, params) {
+                      params$allrowids <- data$rowid
+                      params$allcolids <- data$colid
+                      params
+                    },
+                    #                     
+                    #                     setup_data = function(data, params) {
+                    #                       browser()
+                    #                                             data
+                    #                     },
+                    
+                    # compute_layer = function(self, data, params, panels) {
+                    #   browser()
+                    #   scales <- list(
+                    #     x = factor(data$rowid),
+                    #     y = factor(data$colid)
+                    #   )
+                    #   ggproto_parent(Stat,self)$compute_layer(data,params,panels)
+                    # },
+                    # 
+                    # compute_panel = function(self, data, scales, ...) {
+                    #   browser()
+                    # 
+                    #   ggproto_parent(Stat,self)$compute_panel(data,scales,...)
+                    # },
+                    
+                    
+# 
+#                     compute_layer = function(self, data, params, panels) {
+#                       # check_required_aesthetics(
+#                       #   self$stat$required_aes,
+#                       #   c(names(data), names(params)),
+#                       #   snake_class(self$stat)
+#                       # )
+# 
+#                       data <- remove_missing(data, params$na.rm,
+#                                              c(self$required_aes, self$non_missing_aes),
+#                                              snake_class(self),
+#                                              finite = TRUE
+#                       )
+# 
+#                       # Trim off extra parameters
+#                       params <- params[intersect(names(params), self$parameters())]
+# 
+#                       args <- c(list(data = quote(data), scales = quote(scales)), params)
+#                       ld <- plyr::ddply(data, "PANEL", function(data) {
+#                         # browser()
+#                         scales <- panel_scales(panels, data$PANEL[2])
+#                         tryCatch(do.call(self$compute_panel, args), error = function(e) {
+#                           warning("Computation failed in `", snake_class(self), "()`:\n",
+#                                   e$message, call. = FALSE)
+#                           data.frame()
+#                         })
+#                       })
+#                       browser()
+#                       ld
+#                     },
 
-
-                    compute_group = function(self,data, scales, cluster_aes = "cluster_by") {
+                    
+                    # compute_panel = function(self, data, scales, ...) {
+                    #   if (empty(data)) return(data.frame())
+                    #   
+                    #   groups <- split(data, data$group)
+                    #   stats <- lapply(groups, function(group) {
+                    #     self$compute_group(data = group, scales = scales, ...)
+                    #   })
+                    #   
+                    #   browser()
+                    #   
+                    #   stats <- mapply(function(new, old) {
+                    #     if (empty(new)) return(data.frame())
+                    #     unique <- uniquecols(old)
+                    #     missing <- !(names(unique) %in% names(new))
+                    #     cbind(
+                    #       new,
+                    #       unique[rep(1, nrow(new)), missing,drop = FALSE]
+                    #     )
+                    #   }, stats, groups, SIMPLIFY = FALSE)
+                    #   
+                    #   do.call(plyr::rbind.fill, stats)
+                    # },
+                    # 
+                    
+                    compute_group = function(self,data, scales, cluster_aes = "cluster_by", allrowids, allcolids) {
                       if(nrow(data) < 2){ return(data) }
-
+                      
                       original_columns <- names(data)
                       # browser()
                       
                       cluster_columns <- c('rowid','colid',cluster_aes)
                       clusterable_data <- data[,cluster_columns]
-
+                      
                       # This is kept because it might contain data for other aesthetics
                       non_clusterable_data <- data[,setdiff(original_columns,cluster_columns)]
-
+                      
                       # Convert from tall to wide and remove the x column so all we have
                       # are the matrix of clusterable values
-                      # xrowids <- clusterable_data %>% spread_("colid",cluster_aes) %>% arrange(rowid)
                       
                       x <-  clusterable_data %>% spread_("colid",cluster_aes) 
                       
@@ -113,15 +207,14 @@ StatHeat <- ggproto("StatHeat", Stat,
                       
                       x <- x %>% select(-rowid)
                       xcolids <- x %>% colnames()
-                      #%>% arrange(rowid) %>% select(-rowid)
-
+                      
                       # Ensure that the matrix is entirely numeric
                       xnum <- apply(x,2,function(col) as.numeric(col))
-
+                      
                       # Compute the clustering order
                       row.hc <- hclust(dist(xnum))
                       col.hc <- hclust(dist(t(xnum)))
-
+                      
                       col.ord <- col.hc$order
                       row.ord <- row.hc$order
                       
@@ -129,50 +222,9 @@ StatHeat <- ggproto("StatHeat", Stat,
                       
                       data$coly <- factor(data$colid,levels = xcolids[col.ord])
                       data$rowx <- factor(data$rowid,levels = xrowids[row.ord])
-                                            
-                      # browser()
-                      # # scales$x <- scale_x_discrete(labels = as.character(row.ord))$get_limits()
-                      # #
-                      # # Make a new matrix with the clustering order.
-                      # # This matrix allows us to calculate the derived variables rowx and coly which are the numeric positions
-                      # # corresponding to the properly clustered matrix
-                      # # We need to retain the original row and columns ids though for labelling and for other plots
-                      # #
-                      # xx <- x[row.ord,col.ord]
-                      # 
-                      # 
-                      # # browser()
-                      # # Convert back to tall. This makes a new x and new y based on the new ordering in the matrix
-                      # xx <- data.frame(xx,rowid=as.character(xrowids$rowid[row.ord]),stringsAsFactors = FALSE)
-                      # # colnames(xx) <- c(col.ord,"rowid")
-                      # 
-                      # 
-                      # xt <- xx %>% gather_("colid","value",setdiff(colnames(xx),c("x","y","rowid","colid")))
-                      # xt$rowid <- as.character(xt$rowid)
-                      # # browser()
-                      # 
-                      # xt$coly <- xt$colid
-                      # xt$rowx <- xt$rowid
-                      # 
-                      # # This is essential in order to rejoin with the original data
-                      # xt <- xt %>% arrange(colid,rowid)
-                      # 
-                      # 
-                      # # nd <- xt %>% cbind(group=rep(1,nrow(.))) %>% cbind(PANEL=rep(1,nrow(.))) %>% rename_(cluster_aes="value")
-                      # # nd[,c('fill','x','y','PANEL','group')]
-                      # 
-                      # nd <- cbind(non_clusterable_data,xt)
-                      # names(nd)[names(nd) == "value"] = cluster_aes
-                      # nd <- nd[,c(original_columns)]
-                      # 
-                      # # browser()
-                      # nd$coly <- factor(nd$coly,levels=colnames(x[,col.ord]))
-                      #                       data.frame(nd)
-
-
-                      # nd[,original_columns]
+                      
                       data
-                      }
+                    }
 )
 
 
