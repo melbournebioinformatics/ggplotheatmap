@@ -19,7 +19,7 @@ pd <- data.frame(pd)
 gh <- ggheat(pd) #, id.vars = colnames(sqg[,1:4]))
 gh + stat_heat(aes(size=value),geom="point")
 
-gh <- ggheat(sqg, id.vars = colnames(sqg[,1:4]))
+gh <- ggheat(sqg, id.vars = colnames(sqg[,1:4]),aes(group=grp))
 gh + stat_heat(aes(fill=value),geom="heat") + facet_wrap(~grp, scales = "free")
 
 gh + stat_heat(aes(fill=value),geom="heat") + coord_flip() 
