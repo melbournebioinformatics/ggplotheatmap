@@ -35,8 +35,6 @@ GeomHeat <- ggproto("GeomHeat", GeomRect,
                     
                     setup_data = function(data, params) {
                       
-                      
-                    # browser()
                       data$nx <- as.integer(data$x)
                       data$ny <- as.integer(data$y)
                       data$width <- data$width %||% params$width %||% resolution(data$nx, FALSE)
