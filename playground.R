@@ -19,10 +19,13 @@ pd <- data.frame(pd)
 gh <- ggheat(pd) #, id.vars = colnames(sqg[,1:4]))
 gh + stat_heat(aes(size=value),geom="point")
 
-gh <- ggheat(sqg, id.vars = colnames(sqg[,1:4]),aes(group=grp))
-gh + stat_heat(aes(fill=value),geom="heat") + facet_wrap(~grp, scales = "free")
+gh <- ggheat(sqg, id.vars = colnames(sqg[,1:4]),aes(group=grp)) 
 
-gh + stat_heat(aes(fill=value),geom="heat") + coord_flip() 
+gh + stat_heat(aes(color=value),geom="step") + coord_flip()
+
+gh + stat_heat(aes(color=value),geom="step") +  coord_flip() + facet_wrap(~grp, scales = "fixed") 
+
+gh + stat_heat(aes(fill=value),geom="heat") + coord_flip() + stat_clust(aes(color=grp),relsize=0.05)
 
 gh <- ggheat(sqg, id.vars = colnames(sqg[,1:4]))
 gh + stat_heat(aes(fill=value),geom="heat")  + stat_clust(aes(color=value),relsize=0.05)

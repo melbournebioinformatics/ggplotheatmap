@@ -42,7 +42,7 @@ panel_scales <- function(panel, i) {
 #' Add a heatmap layer to a plot
 #'
 #' @export
-stat_heat <- function(mapping = NULL, data = NULL, geom = "tile",
+stat_heat <- function(mapping = aes(fill=value), data = NULL, geom = "heat",
                       position = "identity", na.rm = FALSE, show.legend = NA, 
                       inherit.aes = TRUE, ...) {
   layer(

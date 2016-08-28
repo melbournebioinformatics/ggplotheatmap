@@ -3,7 +3,7 @@
 #' \code{geom_heat} creates a heatmap by combining \code{geom_tile} to produce the map itself and \code{geom_segment} to display a dendrogram based on the current clustering.
 #'
 #' @export
-geom_heat <- function(mapping = NULL, data = NULL,
+geom_heat <- function(mapping = aes(fill=value), data = NULL,
                       stat = "heat", position = "identity",
                       ...,
                       na.rm = FALSE,

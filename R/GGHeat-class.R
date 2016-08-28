@@ -21,6 +21,10 @@ ggheat <- function(data,mapping = aes(group=1),
                    
                    cold=TRUE,rowd=TRUE,...){
 
+  if ( class(data) != "data.frame"){
+    data <- as.data.frame(data)
+  }
+  
   rownames(data) <- rlabels
   colnames(data) <- clabels
   melted_data <- wide_to_tall(data,id.vars)
