@@ -105,13 +105,26 @@ The first step is to create a `ggheat` object.  We supply the `id.vars` argument
   gh <- gh + theme(axis.text.x=element_text(angle=90)) + 
     xlab("") + ylab("") +
     scale_fill_continuous(name="log2(TPM)")
-  gh
+  gh + coord_flip()
 ```
 
-In general the values in `id.vars` will contain contextual information for each row.  These contextual values are retained by `ggheat` and can be mapped to aesthetics in new layers on the plot. A simple addition to the above plot would be to indicate `iBAQ` expression values using an overlay of points.  In this experiment `iBAQ` was only measured for the `Slime` tissue so we place the overlay in that column.
+In general the values in `id.vars` will contain contextual information for each row.  These contextual values are retained by `ggheat` and can be mapped to aesthetics in new layers on the plot. A simple addition to the above plot would be to indicate `iBAQ` expression values using an overlay of points.  
 
-```{r, fig.show='hold'}
-  gh + geom_point(aes(y='Brain',x=rowid,size=log2(iBAQ))) + coord_flip()
+```{r, fig.width=5}
+  gh + geom_point(aes(y=colid,x=rowid,size=log2(iBAQ))) + coord_flip()
 ```
 
+In order to create a set of points the `x` and `y` aesthetics are both required but there are no appropriate columns in the original data for which this mapping would make sense.  In the example these are mapped to the special data variables, `colid` and `rowid` which are created internally by `ggheat` for this purpose. 
+
+This plot isn't particularly satisfying because the `iBAQ` values are plotted for all samples despite the fact that we happen to know they should really only apply to the `Slime` (which is the sample where they were measured).  In order to fix this we need to use a subset of the data when plotting the `geom_point` layer but 
+
+```{r, fig.width=5}
+  gh + stat_select(aes(y=colid,x=rowid,size=log2(iBAQ)),
+                   select_fun = function(x) { 
+                     x  %>% filter(colid=='Slime')}) + 
+  coord_flip()
+```
+
+
+In this experiment `iBAQ` was only measured for the `Slime` tissue so we would like to place the overlay in that column only.
 

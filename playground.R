@@ -19,6 +19,8 @@ pd <- data.frame(pd)
 gh <- ggheat(pd) #, id.vars = colnames(sqg[,1:4]))
 gh + stat_heat(aes(size=value),geom="point")
 
+gh + stat_heat(aes(size=value),alpha=0.5,geom="point") + stat_select(aes(y=colid,x=rowid, size=0.5*value))
+
 gh <- ggheat(sqg, id.vars = colnames(sqg[,1:4]),aes(group=grp)) 
 
 gh + stat_heat(aes(color=value),geom="step") + coord_flip()

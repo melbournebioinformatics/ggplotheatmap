@@ -6,11 +6,11 @@
 #' @export
 stat_heat <- function(mapping = aes(fill=value), data = NULL, geom = "heat",
                       position = "identity", na.rm = FALSE, show.legend = NA, 
-                      inherit.aes = TRUE, ...) {
+                      inherit.aes = TRUE, cold = TRUE, rowd = TRUE, ...) {
   layer(
     stat = StatHeat, data = data, mapping = mapping, geom = geom, 
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
-    params = list(na.rm = na.rm,... )
+    params = list(na.rm = na.rm, cold = cold , rowd = rowd, ... )
   )
 }
 
@@ -25,12 +25,11 @@ StatHeat <- ggproto("StatHeat", Stat,
                     #   params$allcolids <- data$colid
                     #   params
                     # },
-                    compute_group = function(self,data, scales,cluster_aes = "cluster_by"){
+                    compute_group = function(self,data, scales,cold,rowd, cluster_aes = "cluster_by"){
                       
                       if(nrow(data) < 2){ return(data) }
                       
                       original_columns <- names(data)
-                      
                       
                       cluster_columns <- c('rowid','colid',cluster_aes)
                       clusterable_data <- data[,cluster_columns]
@@ -55,8 +54,15 @@ StatHeat <- ggproto("StatHeat", Stat,
                       row.hc <- hclust(dist(xnum))
                       col.hc <- hclust(dist(t(xnum)))
                       
-                      col.ord <- col.hc$order
-                      row.ord <- row.hc$order
+                      col.ord <- 1:length(col.hc$order)
+                      row.ord <- 1:length(row.hc$order)
+                      if ( cold ) { 
+                        col.ord <- col.hc$order
+                      }
+                      if ( rowd ) {
+                        row.ord <- row.hc$order
+                      }
+                      
 
                       data$coly <- factor(data$colid,levels = xcolids[col.ord])
                       data$rowx <- factor(data$rowid,levels = xrowids[row.ord])
