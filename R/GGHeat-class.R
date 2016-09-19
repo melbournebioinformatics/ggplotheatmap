@@ -18,8 +18,7 @@ ggheat <- function(data,mapping = aes(group=1),
                    distfun = dist,hclustfun= hclust,
                    rlabels=rownames(data),
                    clabels=colnames(data),
-                   
-                   cold=TRUE,rowd=TRUE,...){
+                   ...){
 
   if ( class(data) != "data.frame"){
     data <- as.data.frame(data)
@@ -29,7 +28,6 @@ ggheat <- function(data,mapping = aes(group=1),
   colnames(data) <- clabels
   melted_data <- wide_to_tall(data,id.vars)
 
-  # browser()
   # By default there should be no grouping but in order to enforce this we must explicitly set the group
   # because the ggplot default is to group by all discrete variables present in the data
   # hmp <- ggplot(melted_data,aes(x=rowid,y=colid,rowid=rowid,colid=colid,cluster_by=value,group=1))

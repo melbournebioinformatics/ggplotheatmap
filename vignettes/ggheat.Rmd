@@ -19,7 +19,7 @@ Heatmaps are a visualisation tool that combine a spatial arrangement of data poi
 The `ggheat` package is an extension of the `ggplot2` framework for creating gene expression style heatmaps. While there are many excellent existing heatmap packages for `R` they are all standalone in the sense that they are built on lower level graphics frameworks such as `grid` or `lattice` rather than on a higher level plotting framework such as `ggplot2`.  By creating a heatmap extension for `ggplot`, `ggheat` automatically inherits many powerful features from its parent package including;
 
   - the ability to change the way points are plotted (eg a point, filled rectangle, arrow)
-  - the ability to overlay additional contextual data using an appropriate geometric representation
+  - the ability to overlay additional contextual data using a wide variety of built-in geometric representations and statistics
   - the ability to apply the statistical transformation (clustering) to groups of data separately
   - complete control over the appearance of the plot (eg font, colour, scales etc) using a framework that is familiar to many users and is already very well documented.
 
@@ -31,9 +31,16 @@ To illustrate `ggheat` we start by generating some data.
   d <- sapply(c(1,1,1,2,2,2),function(rx) { 
     c(sapply(c(1,2),function(cy) rnorm(10,mean=rx*cy,sd = 0.2))) 
     })
+  d <- d[sample(1:20,20),sample(1:6,6)]
 ```
 
-This produces a matrix with 20 rows and 6 columns.  This kind of object can be passed directly to ggheat.
+This produces a matrix with 20 rows and 6 columns.  This matrix can be visualised using the `image` function. 
+
+```{r, fig.show='hold'}
+  image(d)
+```
+
+Although there is inherent structure in the data it is obscured because the rows and columns have been randomized.  A heatmap is a good way to visualise the data such that its grouping structure can be easily seen. To do this we pass the matrix directly to `ggheat`
 
 ```{r}
   gh <- ggheat(d)
@@ -45,51 +52,66 @@ This produces the object `gh` which contains our data in a form that is ready to
   gh + stat_heat()
 ```
 
-Note that we used the `+` operator to add a layer in a way that works just like `ggplot`. One of the key principles of `ggplot` is that every layer must have both a stat and a geom. For heatmaps the stat or statistical transformation is a clustering which rearranges rows and/or columns.  The default geom for this stat is the `heat` geom which is a slightly modified version of ggplot's `geom_tile` that deals with non-numeric rows and columns properly.  
+One of the key principles of `ggplot` is that every layer must have both a statistical transformation (stat) and a geometric representation (geom). For heatmaps the stat is either a clustering which rearranges rows and/or columns or an identity stat which does nothing.  The name `stat_heat` reflects the fact that this stat is a key defining feature of heatmaps. The usual geom for heatmaps is a grid of coloured rectangles where the fill colour represents the value for that rectangle. Other geoms such as points or even arrows might make sense in certain contexts. The `ggheat` package also includes a `geom_heat` function which adds a layer with default stat equal to `heat` ie;
 
-Although `stat_heat` is a bit special we can also apply other standard ggplot functions to further modify the plot.  For example to swap rows and columns we can use `coord_flip`.
+```{r, eval=FALSE}
+  gh + stat_heat()
+# is equivalent to
+  gh + geom_heat()
+```
+
+Note that the `+` operator is used to add layers to the plot in a way that works just like `ggplot`. In general any operations that work in ggplot also work in ggheat. This means we can apply standard ggplot functions to further modify the plot.  
+
+For example to swap rows and columns;
 
 ```{r, fig.show='hold'}
   gh + stat_heat() + coord_flip()
 ```
 
+We can also change aesthetic properties of the geom.  In `ggheat` the default is to map fill colour to a special variable called `value`. This variable is automatically generated from the input data and represents the value at a particular row / column coordinate. Instead of mapping value to fill we can try mapping it to `color`.
+
+```{r, fig.show='hold'}
+  gh + stat_heat(aes(color=value)) + coord_flip()
+```
+
+We could also change the `geom` to points and make the point size depend on value. 
+
+```{r, fig.show='hold'}
+  gh + stat_heat(geom="point",aes(size=value)) + coord_flip()
+```
 
 
-
-# Advanced
-
+# Example: Adding a contextual layer
 
 The ggheat package comes with an example dataset from a study by Caruana et al (cite). The dataset includes measurements of mRNA expression in various tissues of a charismatic marine animal (the Southern Bottletail Squid, see figure 1).  
 
 Load and inspect the built in dataset
 
-
 ```{r}
   data(squid)
+  squid <- squid %>% select(-prot_id) # Remove a column we aren't going to use
 
-  head(squid,n=2)
+  knitr::kable(head(squid,n=2))
 ```
 
-The mRNA expression measurements are labelled according to their tissue type. They are `Arms`, `Brain`, `Slime`, `VM`, and `DM`.  The latter two are abbreviations for `Ventral Mantle` and `Dorsal Mantle` respectively.  In addition to these five columns, the data also contains three other columns, `iBAQ` which is a mass spectrometry based measure of protein abundance within the `Slime`, `prot_id` which lists the coding orfs for this transcript and `protein_group` which groups transcripts into according to whether they can be distinguished at the protein level.
+The mRNA expression measurements are labelled according to their tissue type. They are `Arms`, `Brain`, `Slime`, `VM`, and `DM`.  The latter two are abbreviations for `Ventral Mantle` and `Dorsal Mantle` respectively.  In addition to these five columns, the data also contains two other columns, `iBAQ` which is a mass spectrometry based measure of protein abundance within the `Slime` and `protein_group` which identifies groups of transcript translations to which the `iBAQ` values refer.
 
-The first step is to create a `ggheat` object.  We supply the `id.vars` argument in order to identify the columns that do not contain values to be used to create the heatmap. 
+The first step is to create a `ggheat` object.  We supply the `id.vars` argument in order to identify the columns that do not contain values to be used to create the heatmap. This is important because everything not specified by `id.vars` is assumed to be part of the heatmap matrix. 
 
-```{r}
-  gh <- ggheat(squid, id.vars = colnames(squid[,1:3]))
+```{r, fig.width=5}
+  squid_top20 <- head(squid,20) # Take a manageable subset of the data
+
+  gh <- ggheat(squid_top20, id.vars = colnames(squid[,1:2])) + stat_heat()
+  gh <- gh + theme(axis.text.x=element_text(angle=90)) + 
+    xlab("") + ylab("") +
+    scale_fill_continuous(name="log2(TPM)")
+  gh
+```
+
+In general the values in `id.vars` will contain contextual information for each row.  These contextual values are retained by `ggheat` and can be mapped to aesthetics in new layers on the plot. A simple addition to the above plot would be to indicate `iBAQ` expression values using an overlay of points.  In this experiment `iBAQ` was only measured for the `Slime` tissue so we place the overlay in that column.
+
+```{r, fig.show='hold'}
+  gh + geom_point(aes(y='Brain',x=rowid,size=log2(iBAQ))) + coord_flip()
 ```
 
 
-Notice that
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-```
-
-Also a quote using `>`:
-
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
